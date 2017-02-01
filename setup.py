@@ -11,7 +11,8 @@ with open('HISTORY.rst') as history_file:
 
 requirements = [
     'Click>=6.0',
-    # TODO: put package requirements here
+    'requests>=2.13.0',
+    'pymongo==3.4.0',
 ]
 
 test_requirements = [
@@ -33,7 +34,7 @@ setup(
                  'sisosig'},
     entry_points={
         'console_scripts': [
-            'sisosig=sisosig.cli:main'
+            'sisosig=sisosig.cli:cli'
         ]
     },
     include_package_data=True,
