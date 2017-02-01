@@ -12,7 +12,8 @@ with open('HISTORY.rst') as history_file:
 requirements = [
     'Click>=6.0',
     'requests>=2.13.0',
-    'pymongo==3.4.0',
+    'pymongo>=3.4.0',
+    'request.futures>=0.9.7',
 ]
 
 test_requirements = [

@@ -1,8 +1,7 @@
-# TODO: write forecast(s) to file(s)/database
+# TODO: sample locations of interest - subcommand to generate locations
+# TODO: use a file with list of locations
 # TODO: get observations for the locations
 # TODO: tabular (lat, long, date, nDayForecast, observation)
-# TODO: use a file with list of locations
-# TODO: sample locations of interest - subcommand to generate locations
 # for a bounding box
 import os
 import click
@@ -26,22 +25,27 @@ def cli():
               help='MongoDB database name')
 @click.option('-c', '--collection-name', type=str, default='forecasts',
               help='MongoDB collection name')
+@click.option('-s', '--save-to-db', is_flag=True,
+              help='Persist results to the database collection')
 @click.option('-k', '--api-key', type=str,
               default=lambda: os.environ.get('DARKSKY_API_KEY'),
               help='darksky.net API key')
-def get(location, api_key, db_name, collection_name, db_host, db_port):
+def get(location, api_key,
+        db_name, collection_name,
+        db_host, db_port,
+        save_to_db):
     """Get forecasts or observations"""
-    client = DarkskyClient(key=api_key)
-    client = MongoClient()
-    collection = client[db_name][collection_name]
-    import ipdb; ipdb.set_trace()
-    # would rather apply the get function over locations
-    for l in location:
-        click.echo('location lat: %s long: %s' % l)
-        lat, lon = l
-        data = client.get_forecast(lat, lon)
-        click.echo(data)
+    api_client = DarkskyClient(key=api_key)
+    db_client = MongoClient()
+    collection = db_client[db_name][collection_name]
 
+    # TODO: update client to return future?
+    result = [api_client.get_forecast(*loc) for loc in location]
+
+    if save_to_db:
+        collection.insert_many(result)
+    else:
+        click.echo(result)
 
 if __name__ == "__main__":
     cli()
