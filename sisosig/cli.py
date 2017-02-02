@@ -1,8 +1,12 @@
-# TODO: sample locations of interest - subcommand to generate locations
-# TODO: use a file with list of locations
-# TODO: get observations for the locations
+# TODO: library to sample geojson polygons and cli subcommand
+# it should be a separate lib; publish to pypi
+
+# TODO: use a file/collection with list of locations
 # TODO: tabular (lat, long, date, nDayForecast, observation)
 # for a bounding box
+
+# benchmark writing single results to db with as_completed
+# benchmark writing to db as callback
 import os
 import click
 from concurrent.futures import wait
