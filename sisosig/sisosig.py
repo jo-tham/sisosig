@@ -6,6 +6,7 @@ from concurrent.futures import Future, wait
 from datetime import datetime
 from requests_futures.sessions import FuturesSession
 
+
 class DarkskyClient:
     def __init__(self, key: str, threads: int) -> None:
         self.key = key #type: str
@@ -37,5 +38,5 @@ class DarkskyClient:
     def get_forecasts(self, locations: List) -> List[dict]:
         done, incomplete = wait(
             [self._get_forecast(*l) for l in locations]
-        )
+        ) # TODO: what's the type annotation here?
         return [d.result().json() for d in done]
