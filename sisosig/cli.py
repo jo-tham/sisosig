@@ -5,6 +5,8 @@
 # for a bounding box
 import os
 import click
+from concurrent.futures import wait
+
 from pymongo import MongoClient
 
 from .sisosig import DarkskyClient
@@ -15,7 +17,7 @@ def cli():
     pass
 
 @cli.command()
-@click.option('-l', '--location', type=(float, float), multiple=True,
+@click.option('-l', '--locations', type=(float, float), multiple=True,
               help='Coordinates of location for which to get data')
 @click.option('-h', '--db-host', type=str, default='localhost',
               help='MongoDB host')
@@ -27,20 +29,22 @@ def cli():
               help='MongoDB collection name')
 @click.option('-s', '--save-to-db', is_flag=True,
               help='Persist results to the database collection')
+@click.option('-t', '--threads', type=int, default=10,
+              help='Maximum number of threads to use for api calls')
 @click.option('-k', '--api-key', type=str,
               default=lambda: os.environ.get('DARKSKY_API_KEY'),
               help='darksky.net API key')
-def get(location, api_key,
+def get(locations,
         db_name, collection_name,
-        db_host, db_port,
-        save_to_db):
+        db_host, db_port, save_to_db,
+        threads, api_key):
     """Get forecasts or observations"""
-    api_client = DarkskyClient(key=api_key)
+    api_client = DarkskyClient(key=api_key, threads=threads)
     db_client = MongoClient()
     collection = db_client[db_name][collection_name]
 
-    # TODO: update client to return future?
-    result = [api_client.get_forecast(*loc) for loc in location]
+    # note that get_forecasts is concurrent
+    result = api_client.get_forecasts(locations)
 
     if save_to_db:
         collection.insert_many(result)
