@@ -1,18 +1,12 @@
-# TODO: library to sample geojson polygons and cli subcommand
-# it should be a separate lib; publish to pypi
-
-# TODO: use a file/collection with list of locations
 # TODO: tabular (lat, long, date, nDayForecast, observation)
 # for a bounding box
 
 # benchmark writing single results to db with as_completed
 # benchmark writing to db as callback
 import os
+import json
 import click
-from concurrent.futures import wait
-
 from pymongo import MongoClient
-
 from .sisosig import DarkskyClient
 
 
@@ -20,9 +14,12 @@ from .sisosig import DarkskyClient
 def cli():
     pass
 
+
 @cli.command()
 @click.option('-l', '--locations', type=(float, float), multiple=True,
               help='Coordinates of location for which to get data')
+@click.option('--locations-file', type=click.File(),
+              help='Geojson file with coordinates; overrides "-l"')
 @click.option('-h', '--db-host', type=str, default='localhost',
               help='MongoDB host')
 @click.option('-p', '--db-port', type=int, default=27107,
@@ -38,17 +35,26 @@ def cli():
 @click.option('-k', '--api-key', type=str,
               default=lambda: os.environ.get('DARKSKY_API_KEY'),
               help='darksky.net API key')
-def get(locations,
+@click.option('-T', '--time', type=str,
+              default='',
+              help='Unix time for data - e.g. date --date="2 days ago" +%s')
+def get(locations, locations_file,
         db_name, collection_name,
         db_host, db_port, save_to_db,
-        threads, api_key):
+        threads, api_key, time):
     """Get forecasts or observations"""
     api_client = DarkskyClient(key=api_key, threads=threads)
     db_client = MongoClient()
     collection = db_client[db_name][collection_name]
 
-    # note that get_forecasts is concurrent
-    result = api_client.get_forecasts(locations)
+    if locations_file:
+        locations = json.loads(
+            locations_file.read()
+        )['geometry']['coordinates']
+        # geojson is lon,lat instead of lat,lon
+        locations = [i[::-1] for i in locations]
+
+    result = api_client.get_locations(locations, time)
 
     if save_to_db:
         collection.insert_many(result)

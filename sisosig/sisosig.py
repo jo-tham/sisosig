@@ -6,37 +6,29 @@ from datetime import datetime
 from requests_futures.sessions import FuturesSession
 
 
+# TODO: optionally use regular requests session
 class DarkskyClient:
-
     def __init__(self, key: str, threads: int) -> None:
         self.key = key  # type: str
         self.session = FuturesSession(
             max_workers=threads
         )  # type: FuturesSession
 
-    def _get_forecast(self, lat: float, lon: float) -> Future:
+    def _get_location(self, lat: float, lon: float, date: str) -> Future:
+        if date:
+            date = ',{}'.format(date)
         template = ('https://api.darksky.net/forecast/'
-                    '{key}/{lat},{lon}'
+                    '{key}/{lat},{lon}{date}'
                     '?exclude=currently,minutely,hourly'
                     '&units=si')  # type: str
+        import ipdb; ipdb.set_trace()
         endpoint = template.format(
-            key=self.key, lat=lat, lon=lon
+            key=self.key, lat=lat, lon=lon, date=date,
         )  # type: str
-        return self.session.get(endpoint)
+        return None#self.session.get(endpoint)
 
-    def get_observation(self, lat: float, lon: float,
-                        time: datetime) -> dict:
-        template = ('https://api.darksky.net/time-machine/'
-                    '{key}/{lat},{lon},{time}'
-                    '?exclude=currently,minutely,hourly'
-                    '&units=si')  # type: str
-        endpoint = template.format(key=self.key, lat=lat, lon=lon,
-                                   time=time.timestamp())  # type: str
-
-        return requests.get(endpoint).json()
-
-    def get_forecasts(self, locations: List) -> List[dict]:
+    def get_locations(self, locations: List, date: str) -> List[dict]:
         done, incomplete = wait(
-            [self._get_forecast(*l) for l in locations]
+            [self._get_location(*l, date) for l in locations]
         )  # TODO: what's the type annotation here?
         return [d.result().json() for d in done]
