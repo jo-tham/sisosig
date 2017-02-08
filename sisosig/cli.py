@@ -7,6 +7,7 @@ import os
 import json
 import click
 from pymongo import MongoClient
+from pymongo.errors import ConnectionFailure
 from .sisosig import DarkskyClient
 
 
@@ -44,8 +45,14 @@ def get(locations, locations_file,
         threads, api_key, time):
     """Get forecasts or observations"""
     api_client = DarkskyClient(key=api_key, threads=threads)
-    db_client = MongoClient()
+    db_client = MongoClient(host=db_host, port=db_port)
     collection = db_client[db_name][collection_name]
+
+    try:
+        db_client.admin.command('ismaster')
+    except ConnectionFailure:
+        click.echo("{}:{} not available".format(db_host, db_port))
+        raise
 
     if locations_file:
         locations = json.loads(
