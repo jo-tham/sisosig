@@ -57,6 +57,7 @@ def get(locations, locations_file,
     result = api_client.get_locations(locations, time)
 
     if save_to_db:
+        click.echo("Saving to database")
         collection.insert_many(result)
     else:
         click.echo(result)

@@ -21,11 +21,11 @@ class DarkskyClient:
                     '{key}/{lat},{lon}{date}'
                     '?exclude=currently,minutely,hourly'
                     '&units=si')  # type: str
-        import ipdb; ipdb.set_trace()
+
         endpoint = template.format(
             key=self.key, lat=lat, lon=lon, date=date,
         )  # type: str
-        return None#self.session.get(endpoint)
+        return self.session.get(endpoint)
 
     def get_locations(self, locations: List, date: str) -> List[dict]:
         done, incomplete = wait(
