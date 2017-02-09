@@ -23,7 +23,7 @@ def cli():
               help='Geojson file with coordinates; overrides "-l"')
 @click.option('-h', '--db-host', type=str, default='localhost',
               help='MongoDB host')
-@click.option('-p', '--db-port', type=int, default=27107,
+@click.option('-p', '--db-port', type=int, default=27017,
               help='MongoDB port')
 @click.option('-d', '--db-name', type=str, default='sisosig',
               help='MongoDB database name')
